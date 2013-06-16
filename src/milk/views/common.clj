@@ -73,7 +73,8 @@
                   [:ul.nav
                    (map link-item admin-links)]]
                  content]]]))
+
 (defpartial show-layout [& content]
             (html5
               (build-head-x [:reset :default :jquery :carousel.js])
-         ( hicv/html->hiccup (slurp "src/milk/views/my.html") )))
+              (hicv/html->hiccup (slurp "src/milk/views/my.html"))))

@@ -20,7 +20,9 @@
 (mc/ensure-index "pastes" {:fork 1})
 (require  
  '[milk.views.common :refer [main-layout]]
- '[milk.views.home :refer [home-routes]])
+ '[milk.views.home :refer [home-routes]]
+ '[milk.views.paste :refer [paste-routes]])
+
 
 (defn four-zero-four []
   (main-layout
@@ -36,10 +38,11 @@
 (def handler
   (-> (routes 
       home-routes
+      paste-routes
       (resources "/")
-      (not-found (four-zero-four)))
+     )
       (api)
       (wrap-noir-flash)
       (wrap-noir-session {:store (monger-store "sessions")})
       (wrap-strip-trailing-slash)
-      (wrap-prod-middleware)))
+      ))

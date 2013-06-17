@@ -37,13 +37,14 @@
       DigestUtils/shaHex
       (.substring 0 25)))
 
-(defn paste-map [id random-id user  contents date private fork views]
+(defn paste-map [id random-id user title  contents date private fork views]
   (let [
         private (boolean private)
         random-id (or random-id (generate-id))]
       {:paste-id (if private random-id (str id))
        :id id
        :random-id random-id
+       :title title 
        :user (:id user)
        :contents contents
        :summary  (preview contents)
@@ -76,7 +77,7 @@
 
 (defn paste
   "Create a new paste."
-  [contents private user & [fork]]
+  [ title contents   private user & [fork]]
   (let [validated (validate contents)]
     (if-let [error (:error validated)]
       error
@@ -85,9 +86,10 @@
             paste (paste-map id
                     random-id
                     user
+                    title
                     (:contents validated)
                     (format/unparse (format/formatters :date-time) (time/now))
-                    private
+                    (or private false )
                     fork
                     0)]
             (mc/insert-and-return "pastes" paste)))))
@@ -118,7 +120,7 @@
 
 (defn update-paste
   "Update an existing paste."
-  [old  contents private user]
+  [old  title contents private user]
   (let [validated (validate contents)
         error (:error validated)]
     (cond
@@ -129,6 +131,7 @@
                          old-id
                          random-id
                          user
+                         title
                          (:contents validated)
                          (:date old)
                          private

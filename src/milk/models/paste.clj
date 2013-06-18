@@ -3,15 +3,16 @@
   (:require [noir.session :as session]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clj-time.core :as time]
-            [clj-time.format :as format]
+            [clj-time.core :as ctime]
+            [clj-time.format :as tform]
             [monger.collection :as mc]
             [monger.query :refer [with-collection find sort limit paginate]]
             [monger.operators :refer [$inc]])
   (:import java.io.StringReader
            org.apache.commons.codec.digest.DigestUtils))
 
-
+(def date-format (tform/formatter "MM/dd/yy" (ctime/default-time-zone)))
+(def time-format (tform/formatter "h:mma" (ctime/default-time-zone)))
 (def paste-id
   "The current highest paste-id."
   (atom
@@ -37,10 +38,14 @@
       DigestUtils/shaHex
       (.substring 0 25)))
 
-(defn paste-map [id random-id user title  contents date private fork views]
-  (let [
-        private (boolean private)
-        random-id (or random-id (generate-id))]
+(defn perma-link-ge [id]
+  (str "/milk/view/" id))
+
+(defn paste-map [id random-id user title  contents date fork views perma-link]
+  (let [private  false 
+        random-id (or random-id (generate-id))
+        perma-link (perma-link-ge id)]
+       
       {:paste-id (if private random-id (str id))
        :id id
        :random-id random-id
@@ -55,7 +60,9 @@
                   lines
                   (inc lines)))
        :fork fork
-       :views views}
+       :views views
+       :perma-link perma-link
+         }
       ))
 
 
@@ -77,7 +84,7 @@
 
 (defn paste
   "Create a new paste."
-  [ title contents   private user & [fork]]
+  [ title contents  user & [fork]]
   (let [validated (validate contents)]
     (if-let [error (:error validated)]
       error
@@ -88,10 +95,10 @@
                     user
                     title
                     (:contents validated)
-                    (format/unparse (format/formatters :date-time) (time/now))
-                    (or private false )
+                    (ctime/now)
                     fork
-                    0)]
+                    0
+                    "")]
             (mc/insert-and-return "pastes" paste)))))
 
 (defn get-paste
@@ -120,7 +127,7 @@
 
 (defn update-paste
   "Update an existing paste."
-  [old  title contents private user]
+  [old  title contents  user]
   (let [validated (validate contents)
         error (:error validated)]
     (cond
@@ -134,7 +141,6 @@
                          title
                          (:contents validated)
                          (:date old)
-                         private
                          (:fork old)
                          (:views old))]
     
@@ -165,7 +171,7 @@
   "Get forks of a paste."
   (with-collection "pastes"
     (find {:fork (:id paste)
-           :private false})
+           :private true})
     (sort {:date -1})
     (paginate :page page :per-page 20)))
 

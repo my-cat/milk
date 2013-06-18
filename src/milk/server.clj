@@ -9,7 +9,7 @@
             [compojure.handler :refer [api]]
             [compojure.route :refer [not-found resources]]
             ))
-(let [uri (get (System/getenv) "MONGOLAB_URI" "mongodb://127.0.0.1/milk_development")]
+(let [uri (get (System/getenv) "MONGOLAB_URI" "mongodb://xiaomuei:lawe3413@dharma.mongohq.com:10020/milk-development")]
   (mg/connect-via-uri! uri))
 
 

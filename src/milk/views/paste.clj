@@ -13,23 +13,37 @@
             [clojure.string :refer [split join]]))
 
 
-(defpartial post-fields [{:keys [private content title ]}]
+(defpartial post-fields [{:keys [content title ]}]
            
-            (drop-down :private  [["私有" true] ["公有" false]]) 
             
             (text-field {:placeholder "Title"} :title  title ) 
             (text-area {:placeholder "Body"} :content content))
 
 
+(defpartial paste-item [{:keys [ perma-link title summary  date id] :as paste}]
+            (when paste
+              [:li.post
+              [:h2 (link-to perma-link title)]
+               [:ul.datetime
+                [:li date]
+                [:li id]
+                ]
+               [:div.content summary]]))
+
+(defpartial paste-page [items]
+            (main-layout
+              [:ul.posts
+               (map paste-item items)]))
 
 (defn create-paste [{:keys [title content private]}]
-  (let [paste (paste/paste  title content private  "my name")]
+  (let [paste (paste/paste  title content  "my name")]
     (if (map? paste)
-      (redirect (str "/milk/paste/add" ))
+      (redirect (str "/" ))
     ))) 
 
 
 (defroutes paste-routes 
+  (GET "/"   []  (paste-page  (paste/get-pastes 1)) )
 	(GET "/milk/paste/add" {:as paste} 
 		(admin-layout
            (form-to [:post "/milk/paste/add"]

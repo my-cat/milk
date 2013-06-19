@@ -78,7 +78,7 @@
       (some #{(:paste-id paste)} (session/get :anon-pastes))))
 
 
-(defn parse-date [date]
+(defn parse-date-this [date]
   (format/parse))
 
 

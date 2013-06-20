@@ -63,7 +63,7 @@
        :views views
        :perma-link perma-link
          }
-      ))
+       ))
 
 
 (defn validate [contents]

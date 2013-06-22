@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clj-time.core :as ctime]
+            [clj-time.coerce :as coerce]
             [clj-time.format :as tform]
             [monger.collection :as mc]
             [monger.query :refer [with-collection find sort limit paginate]]
@@ -41,7 +42,7 @@
 (defn perma-link-ge [id]
   (str "/milk/view/" id))
 
-(defn paste-map [id random-id user title  contents date fork views perma-link]
+(defn paste-map [id random-id user title  contents  fork views perma-link]
   (let [private  false 
         random-id (or random-id (generate-id))
         perma-link (perma-link-ge id)]
@@ -54,7 +55,6 @@
        :contents contents
        :summary  (preview contents)
        :private (boolean private)
-       :date date
        :lines (let [lines (count (filter #{\newline} contents))]
                 (if (= \newline (last contents))
                   lines
@@ -65,6 +65,12 @@
          }
        ))
 
+(defn wrap-time [paste]
+  (let [ts (ctime/now)]
+    (-> paste
+      (assoc :ts (coerce/to-long ts))
+      (assoc :date (tform/unparse date-format ts))
+      (assoc :tme (tform/unparse time-format ts)))))
 
 (defn validate [contents]
   (cond
@@ -78,9 +84,6 @@
       (some #{(:paste-id paste)} (session/get :anon-pastes))))
 
 
-(defn parse-date-this [date]
-  (format/parse))
-
 
 (defn paste
   "Create a new paste."
@@ -90,15 +93,14 @@
       error
       (let [id (swap! paste-id inc)
             random-id (generate-id)
-            paste (paste-map id
+            paste (wrap-time (paste-map id
                     random-id
                     user
                     title
                     (:contents validated)
-                    (ctime/now)
                     fork
                     0
-                    "")]
+                    ""))]
             (mc/insert-and-return "pastes" paste)))))
 
 (defn get-paste

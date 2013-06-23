@@ -14,4 +14,5 @@
                  [me.raynes/cegdown "0.1.0"]
                  [me.raynes/laser "1.1.1"]]
   :plugins [[lein-ring "0.8.2"]]
-  :ring {:handler milk.server/handler})
+  :ring {:handler milk.server/handler}
+  )

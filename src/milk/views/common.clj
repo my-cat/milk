@@ -16,7 +16,7 @@
     `(defn ~fname ~params
        (html
         ~@body))))
-(def main-links [{:url "/blog/admin" :text "Admin"}])
+(def main-links [{:url "/milk/paste/add" :text "Admin"}])
 
 (def admin-links [{:url "/blog/" :text "Blog"}
                   {:url "/blog/admin" :text "Posts"}
@@ -37,7 +37,7 @@
   (-> file resource slurp l/unescaped))
 (defpartial build-head [incls]
             [:head
-             [:title "The Noir Blog"]
+             [:title "每日一文"]
              (map #(get includes %) incls)])
 (defpartial build-head-x [incls]
             [:head
@@ -69,7 +69,7 @@
                [:div#wrapper
                 [:div.content
                  [:div#header
-                  [:h1 (link-to "/blog/admin" "Admin")]
+                  [:h1 (link-to "/milk/paste/add" "Admin")]
                   [:ul.nav
                    (map link-item admin-links)]]
                  content]]]))

@@ -78,3 +78,7 @@
             (html5
               (build-head-x [:reset :default :jquery :carousel.js])
               (hicv/html->hiccup (slurp "src/milk/views/my.html"))))
+(defpartial show-markdown []
+            (html5
+              
+              (hicv/html->hiccup (slurp "src/milk/views/markdown.html"))))

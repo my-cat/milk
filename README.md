@@ -1,10 +1,15 @@
 # milk
+> 由comprojure，mongo编写的个人简易blog主要练习数据库,后台编写。
 
-A Clojure library designed to ... well, that part is up to you.
 
 ## Usage
 
-FIXME
+```bash
+lein ring server 
+
+http://localhost:3000/milk/paste/add
+```
+>连接没有 由于实习没有完全整理。
 
 ## License
 

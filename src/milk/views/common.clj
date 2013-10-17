@@ -8,6 +8,7 @@
              [me.raynes.laser :refer [defdocument defragment] :as l]
              [hiccup-bridge.core :as hicv]
              [clojure.java.io :refer [resource]] ))
+
 (defmacro defpartial
   "Create a function that returns html using hiccup. The function is callable with the given name. Can optionally include a docstring or metadata map, like a normal function declaration."
   [fname & args]
@@ -16,12 +17,12 @@
     `(defn ~fname ~params
        (html
         ~@body))))
-(def main-links [{:url "/milk/paste/add" :text "Admin"}])
+(def main-links [{:url "/milk/admin" :text "Admin"}])
 
-(def admin-links [{:url "/blog/" :text "Blog"}
-                  {:url "/blog/admin" :text "Posts"}
-                  {:url "/blog/admin/users" :text "Users"}
-                  {:url "/blog/logout" :text "Logout"}])
+(def admin-links [{:url "/" :text "Milk"}
+                  {:url "/milk/admin" :text "Pastes"}
+                  {:url "/milk/admin/users" :text "Users"}
+                  {:url "/milk/logout" :text "Logout"}])
 
 (def includes {:jquery (include-js "http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js")
                :default (include-css "/css/default.css")
@@ -39,6 +40,8 @@
             [:head
              [:title "每日一文"]
              (map #(get includes %) incls)])
+
+
 (defpartial build-head-x [incls]
             [:head
              [:title "The Picture Blog"]
@@ -57,7 +60,7 @@
                [:div#wrapper
                 [:div.content
                  [:div#header
-                  [:h1 (link-to "/blog/" "The Noir blog")]
+                  [:h1 (link-to "/" "The Lib-Noir Pastes")]
                   [:ul.nav
                    (map link-item main-links)]]
                  content]]]))
@@ -69,7 +72,7 @@
                [:div#wrapper
                 [:div.content
                  [:div#header
-                  [:h1 (link-to "/milk/paste/add" "Admin")]
+                  [:h1 (link-to "/milk/admin" "Admin")]
                   [:ul.nav
                    (map link-item admin-links)]]
                  content]]]))
@@ -78,7 +81,19 @@
             (html5
               (build-head-x [:reset :default :jquery :carousel.js])
               (hicv/html->hiccup (slurp "src/milk/views/my.html"))))
+
 (defpartial show-markdown []
-            (html5
-              
+            (html5              
               (hicv/html->hiccup (slurp "src/milk/views/markdown.html"))))
+
+(defpartial show-home []
+            (html5              
+              (hicv/html->hiccup (slurp "src/milk/views/template/home.html"))))
+
+(defpartial show-git  []
+            (html5
+              (hicv/html->hiccup (slurp "src/milk/views/template/git.html"))))
+
+(defpartial show-parsehttp  []
+            (html5
+              (hicv/html->hiccup (slurp "src/milk/views/template/parsehttp.html"))))

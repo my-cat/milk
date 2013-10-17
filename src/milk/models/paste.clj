@@ -6,6 +6,7 @@
             [clj-time.core :as ctime]
             [clj-time.coerce :as coerce]
             [clj-time.format :as tform]
+            [noir.validation :as vali]
             [monger.collection :as mc]
             [monger.query :refer [with-collection find sort limit paginate]]
             [monger.operators :refer [$inc]])
@@ -13,7 +14,7 @@
            org.apache.commons.codec.digest.DigestUtils))
 
 (def date-format (tform/formatter "MM/dd/yy" (ctime/default-time-zone)))
-(def time-format (tform/formatter "h:mma" (ctime/default-time-zone)))
+(def time-format (tform/formatter "hh:mm" (ctime/default-time-zone)))
 (def paste-id
   "The current highest paste-id."
   (atom
@@ -22,8 +23,7 @@
          (sort {:id -1})
          (limit 1))
          first
-         :id
-       (or 0))))
+         :id)))
 
 (defn preview
   "Get the first 5 lines of a string."
@@ -42,6 +42,17 @@
 (defn perma-link-ge [id]
   (str "/milk/view/" id))
 
+(defn edit-url [{:keys [paste-id]}]
+  (str "/milk/paste/edit/" paste-id ))
+
+
+(defn valid-x? [{:keys [title contents]}]
+  (vali/rule (vali/has-value? title)
+             [:title "There must be a title"])
+  (vali/rule (vali/has-value? contents)
+             [:contents "There's no post content."])
+  (not (vali/errors? :title :contents)))
+
 (defn paste-map [id random-id user title  contents  fork views perma-link]
   (let [private  false 
         random-id (or random-id (generate-id))
@@ -51,7 +62,7 @@
        :id id
        :random-id random-id
        :title title 
-       :user (:id user)
+       :user  user
        :contents contents
        :summary  (preview contents)
        :private (boolean private)
@@ -88,20 +99,19 @@
 (defn paste
   "Create a new paste."
   [ title contents  user & [fork]]
-  (let [validated (validate contents)]
-    (if-let [error (:error validated)]
-      error
       (let [id (swap! paste-id inc)
             random-id (generate-id)
             paste (wrap-time (paste-map id
                     random-id
                     user
                     title
-                    (:contents validated)
+                    contents
                     fork
                     0
                     ""))]
-            (mc/insert-and-return "pastes" paste)))))
+            (when (valid-x? paste )
+            (mc/insert-and-return "pastes" paste))))
+
 
 (defn get-paste
   "Get a paste."
@@ -125,29 +135,26 @@
 (defn get-paste-by-id
   "Get a paste by its :id key (which is the same regardless of being public or private."
   [id]
-  (mc/find-one-as-map "pastes" {:id id}))
+  (mc/find-one-as-map "pastes" {:paste-id id}))
 
 (defn update-paste
   "Update an existing paste."
-  [old  title contents  user]
-  (let [validated (validate contents)
-        error (:error validated)]
-    (cond
-      error error
-      (not (same-user? user old)) "You can only edit your own pastes!"
-      :else (let [{old-id :id random-id :random-id} old
-                  paste (paste-map
-                         old-id
-                         random-id
-                         user
-                         title
-                         (:contents validated)
-                         (:date old)
-                         (:fork old)
-                         (:views old))]
-    
-                (mc/update "pastes" {:id old-id} paste :upsert false :multi false)
-              paste))))
+  [{:keys [id title contents] }]
+  (println "this is in update " title id contents)
+  (let [paste  (get-paste id ) 
+      {:keys [id random-id user fork]} paste  
+                  paste-new (wrap-time (paste-map id
+                    random-id
+                    user
+                    title
+                    contents
+                    fork
+                    0
+                    "")) ]  
+                         (println "I am in the here " paste-new id paste )  
+                  (if (valid-x? paste-new )
+                (mc/update "pastes" {:id id} paste-new )
+                false)))
 
 (defn delete-paste
   "Delete an existing paste."
@@ -187,3 +194,6 @@
 
 (defn proper-page [n]
   (if (<= n 0) 1 n))
+
+(defn get-latest []
+  (get-pastes 1))

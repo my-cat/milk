@@ -2,12 +2,15 @@
   (:require 
             [noir.util.middleware :refer [wrap-strip-trailing-slash wrap-canonical-host wrap-force-ssl]]
             [noir.session :refer [wrap-noir-session wrap-noir-flash]]
+            
+            [noir.validation :as vali]
             [monger.core :as mg]
             [monger.collection :as mc]
             [monger.ring.session-store :refer [monger-store]]
             [compojure.core :refer [defroutes routes ANY]]
             [compojure.handler :refer [api]]
-            [compojure.route :refer [not-found resources]]
+            [compojure.route :refer [not-found resources]
+           ]
             ))
 (let [uri (get (System/getenv) "MONGOLAB_URI" "mongodb://xiaomuei:lawe3413@dharma.mongohq.com:10020/milk-development")]
   (mg/connect-via-uri! uri ))
@@ -21,7 +24,8 @@
 (require  
  '[milk.views.common :refer [main-layout]]
  '[milk.views.home :refer [home-routes]]
- '[milk.views.paste :refer [paste-routes]])
+ '[milk.views.paste :refer [paste-routes]]
+ '[milk.views.admin :refer [user-routes]])
 
 
 (defn four-zero-four []
@@ -39,10 +43,13 @@
   (-> (routes 
       home-routes
       paste-routes
+      user-routes
       (resources "/")
      )
       (api)
       (wrap-noir-flash)
-      (wrap-noir-session {:store (monger-store "sessions")})
+      (wrap-noir-session )
       (wrap-strip-trailing-slash)
+      (vali/wrap-noir-validation)
+
       ))

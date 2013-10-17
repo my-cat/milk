@@ -19,4 +19,5 @@
                  ]
   :plugins [[lein-ring "0.8.7"]]
   :ring {:handler milk.server/handler }
+  :min-lein-version "2.0.0"
   )

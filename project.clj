@@ -18,5 +18,5 @@
                  [com.draines/postal "1.11.0"]
                  ]
   :plugins [[lein-ring "0.8.7"]]
-  :ring {:handler milk.server/handler :init milk.server/start}
+  :ring {:handler milk.server/handler }
   )

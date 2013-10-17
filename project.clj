@@ -9,7 +9,7 @@
                  [lib-noir "0.7.0"]
                  [com.novemberain/monger "1.6.0-beta2"]
                  [hiccup-bridge "1.0.0-SNAPSHOT"]
-                 [org.clojure/tools.macro "0.1.1"]
+                 [org.clojure/tools.macro "0.1.2"]
                  [hiccup "1.0.3"]
                  [me.raynes/cegdown "0.1.0"]
                  [me.raynes/laser "1.1.1"]

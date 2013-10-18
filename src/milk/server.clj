@@ -9,23 +9,47 @@
             [monger.ring.session-store :refer [monger-store]]
             [compojure.core :refer [defroutes routes ANY]]
             [compojure.handler :refer [api]]
-            [compojure.route :refer [not-found resources]
-           ]
+            [compojure.route :refer [not-found resources]]
+            [monger.query :refer [with-collection find sort limit paginate]]
+            [milk.views.common :refer [main-layout]]
+       [milk.views.home :refer [home-routes]]
+   [milk.views.paste :refer [paste-routes]]
+   [milk.views.admin :refer [user-routes]]
+           
             ))
+
+(declare ^:dynamic *paste-id*)
+
+(defn init! []
 (let [uri (get (System/getenv) "MONGOLAB_URI" "mongodb://xiaomuei:lawe3413@dharma.mongohq.com:10020/milk-development")]
-  (mg/connect-via-uri! uri ))
-
-
-(mc/ensure-index "pastes" {:user 1 :date 1})
+  (mg/connect-via-uri! uri )
+  (mc/ensure-index "pastes" {:user 1 :date 1})
 (mc/ensure-index "pastes" {:private 1})
 (mc/ensure-index "pastes" {:id 1})
 (mc/ensure-index "pastes" {:paste-id 1})
 (mc/ensure-index "pastes" {:fork 1})
-(require  
- '[milk.views.common :refer [main-layout]]
- '[milk.views.home :refer [home-routes]]
- '[milk.views.paste :refer [paste-routes]]
- '[milk.views.admin :refer [user-routes]])
+ ))
+
+
+(def initialized (ref nil))
+
+(defn initialize [handler]
+  (fn [request]
+    (when (not @initialized)
+      (dosync (init!) (ref-set initialized true)))
+    (handler request)))
+
+(defn wrap-paste-id [handler]
+  (fn [request]
+    (binding [*paste-id* (atom (-> (with-collection "pastes"
+         (find {})
+         (sort {:id -1})
+         (limit 1))
+         first
+         :id)  ) ]
+      (handler request))))
+
+
 
 
 (defn four-zero-four []
@@ -51,5 +75,6 @@
       (wrap-noir-session )
       (wrap-strip-trailing-slash)
       (vali/wrap-noir-validation)
+      (wrap-paste-id)
 
       ))

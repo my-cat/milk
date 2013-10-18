@@ -9,21 +9,17 @@
             [noir.validation :as vali]
             [monger.collection :as mc]
             [monger.query :refer [with-collection find sort limit paginate]]
-            [monger.operators :refer [$inc]])
+            [monger.operators :refer [$inc]]
+             [monger.core :as mg])
   (:import java.io.StringReader
            org.apache.commons.codec.digest.DigestUtils))
 
 (def date-format (tform/formatter "MM/dd/yy" (ctime/default-time-zone)))
+
 (def time-format (tform/formatter "hh:mm" (ctime/default-time-zone)))
-(def paste-id
-  "The current highest paste-id."
-  (atom
-   (-> (with-collection "pastes"
-         (find {})
-         (sort {:id -1})
-         (limit 1))
-         first
-         :id)))
+
+(declare ^:dynamic *paste-id*)
+
 
 (defn preview
   "Get the first 5 lines of a string."
@@ -99,7 +95,7 @@
 (defn paste
   "Create a new paste."
   [ title contents  user & [fork]]
-      (let [id (swap! paste-id inc)
+      (let [id (swap! *paste-id* inc)
             random-id (generate-id)
             paste (wrap-time (paste-map id
                     random-id

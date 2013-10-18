@@ -18,6 +18,6 @@
                  [com.draines/postal "1.11.0"]
                  ]
   :plugins [[lein-ring "0.8.7"]]
-  :ring {:handler milk.server/handler }
+  :ring { :handler milk.server/handler  :init milk.server/init!}
   :min-lein-version "2.0.0"
   )

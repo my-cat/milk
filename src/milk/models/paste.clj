@@ -10,15 +10,30 @@
             [monger.collection :as mc]
             [monger.query :refer [with-collection find sort limit paginate]]
             [monger.operators :refer [$inc]]
+            
              [monger.core :as mg])
   (:import java.io.StringReader
            org.apache.commons.codec.digest.DigestUtils))
+
+(declare ^:dynamic *paste-id*)
+
+(defn get-new-paste-id []
+  (swap! *paste-id* inc))
+
+(defn wrap-paste-id [handler]
+  (fn [request]
+    (binding [*paste-id* (atom (-> (with-collection "pastes"
+         (find {})
+         (sort {:id -1})
+         (limit 1))
+         first
+         :id)  ) ]
+      (handler request))))
 
 (def date-format (tform/formatter "MM/dd/yy" (ctime/default-time-zone)))
 
 (def time-format (tform/formatter "hh:mm" (ctime/default-time-zone)))
 
-(declare ^:dynamic *paste-id*)
 
 
 (defn preview
@@ -95,7 +110,7 @@
 (defn paste
   "Create a new paste."
   [ title contents  user & [fork]]
-      (let [id (swap! *paste-id* inc)
+      (let [id (get-new-paste-id)
             random-id (generate-id)
             paste (wrap-time (paste-map id
                     random-id

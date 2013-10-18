@@ -15,10 +15,11 @@
        [milk.views.home :refer [home-routes]]
    [milk.views.paste :refer [paste-routes]]
    [milk.views.admin :refer [user-routes]]
+   [milk.models.paste :as pastes]
            
             ))
 
-(declare ^:dynamic *paste-id*)
+
 
 (defn init! []
 (let [uri (get (System/getenv) "MONGOLAB_URI" "mongodb://xiaomuei:lawe3413@dharma.mongohq.com:10020/milk-development")]
@@ -31,6 +32,8 @@
  ))
 
 
+
+
 (def initialized (ref nil))
 
 (defn initialize [handler]
@@ -39,15 +42,7 @@
       (dosync (init!) (ref-set initialized true)))
     (handler request)))
 
-(defn wrap-paste-id [handler]
-  (fn [request]
-    (binding [*paste-id* (atom (-> (with-collection "pastes"
-         (find {})
-         (sort {:id -1})
-         (limit 1))
-         first
-         :id)  ) ]
-      (handler request))))
+
 
 
 
@@ -75,6 +70,6 @@
       (wrap-noir-session )
       (wrap-strip-trailing-slash)
       (vali/wrap-noir-validation)
-      (wrap-paste-id)
+      (pastes/wrap-paste-id)
 
       ))
